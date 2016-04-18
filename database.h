@@ -10,10 +10,12 @@ class Database {
 private:
   mysqlpp::Connection con;
 public:
-  Database();
+  Database(std::string server, std::string user, std::string password);
+  void resetDatabase();
   void printMeasurement();
   void insert(int domain_index, double query_time);
 private:
-  int connect_mysql();
+  int connect_mysql(std::string server, std::string user, std::string password);
+  int initialize_tables();
 };
 #endif

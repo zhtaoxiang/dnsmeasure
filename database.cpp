@@ -6,17 +6,24 @@ static std::string table_name = "stat";
 static std::string original_table_names[] = {
     "google", "facebook", "youtube", "yahoo", "live", "wikipedia", "baidu", "blogger", "msn", "qq"
 };
-static int num_of_domains = 10;
 
-Database::Database() 
-{
-  connect_mysql();
+Database::Database(std::string server, std::string user, std::string password) {
+  connect_mysql(server, user, password);
 }
 
-int Database::connect_mysql()
-{
+void Database::resetDatabase() {
+  mysqlpp::Query query = con.query();
+  std::cout << "Drop all the tables" << std::endl; 
+  query.exec("drop table stat");
+  for(int i = 0; i < num_of_domains; i++) {
+    query.exec("drop table " + original_table_names[i]);
+  }
+  Database::initialize_tables();
+}
+
+int Database::connect_mysql(std::string server, std::string user, std::string password) {
   try {
-    con.connect(0, "localhost", "root", "123456");
+    con.connect(0, server.c_str(), user.c_str(), password.c_str());
   } catch (std::exception& er) {
     std::cerr << "Connection failed: " << er.what() << std::endl;
     return 1;
@@ -46,6 +53,10 @@ int Database::connect_mysql()
   // need to create the database
   if(!new_db)
     return 0;
+  return initialize_tables();
+}
+
+int Database::initialize_tables() {
   try {
     // Send the query to create the stat table and execute it.
     std::cout << "Creating stat table..." << std::endl;
@@ -105,8 +116,7 @@ int Database::connect_mysql()
   }
 }
 
-void Database::printMeasurement() 
-{
+void Database::printMeasurement() {
   mysqlpp::Query query = con.query();
   query << "select * from stat";
   mysqlpp::StoreQueryResult res = query.store();
@@ -135,8 +145,7 @@ void Database::printMeasurement()
   }
 }
 
-void Database::insert(int domain_index, double query_time) 
-{
+void Database::insert(int domain_index, double query_time) {
   //insert data into original data table;
   mysqlpp::Query query = con.query();
   query << "insert into " << original_table_names[domain_index] << " (latency) values (" << query_time << ")";
@@ -149,7 +158,7 @@ void Database::insert(int domain_index, double query_time)
   i = res.begin();
   if(i == res.end()) {
     std::cerr << "Something is wrong with the database, please fix it first" << std::endl;
-    return;
+    exit(1);
   }
 
   query.reset();
@@ -164,15 +173,15 @@ void Database::insert(int domain_index, double query_time)
     double ave_query_time = (((double)(*i)[2]) * (total_query_num - 1) + query_time) / total_query_num;
 
     // calculate the standard deviation
-    double sum = 0;
+    double sum_for_ave = 0, sum_for_std = 0;
     mysqlpp::Query query_from_original_table = con.query();
     query_from_original_table << "select * from " << original_table_names[domain_index];
     mysqlpp::StoreQueryResult res_from_original_table = query_from_original_table.store();
     mysqlpp::StoreQueryResult::iterator i_from_original_table;
     for (i_from_original_table = res_from_original_table.begin(); i_from_original_table != res_from_original_table.end(); ++i_from_original_table) {
-      sum += pow((double)(*i_from_original_table)[1] - ave_query_time, 2.0);
+      sum_for_std += pow((double)(*i_from_original_table)[1] - ave_query_time, 2.0);
     }
-    double std = sqrt(sum / total_query_num);
+    double std = sqrt(sum_for_std / total_query_num);
 
     query << " aveque=" << ave_query_time << 
       ", std=" << std << 
