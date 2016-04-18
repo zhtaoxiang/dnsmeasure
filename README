@@ -1,0 +1,23 @@
+Tracking DNS performance to top sites
+
+Introduction:
+1. This software is developed and tesed on Ubuntu 14.04 TLS 32 bits OS.
+2. This software depends on mysql (libmysqlclient18-dev, mysql-server 5.5), mysql++(3.2.2) and ldns(1.6.17).
+3. To use the makefile to compile and build this software, all the libraries are required to be installed in the standard path. If some of the libraries are not installed in the standard path, please modify the makefile to compile and build it.
+4. See the following description and use "--help" or "-h" options to learn about how to use it.
+
+
+Importance: 
+Such performance numbers to top sites can be used as benchmarks for others to compare to.
+
+Description:
+Write a C++ (not C) program on Linux/BSD (Mac) that periodically sends DNS queries to the nameservers of the top 10 Alexa domains and stores the latency values in a MySQL table. The frequency of queries should be specified by the user on command line. The program needs to make sure it doesn't hit the DNS cache while trying to query for a site, so it should always prepend a random string to each domain. For example, to measure performance to foo.bar, send a query to <random>.foo.bar (e.g., 1234xpto.foo.bar).
+
+Besides the time series values, the code needs to keep track of some statistics about each domain in the MySQL database:
+    Average query time
+    Standard deviation of query times
+    Number of queries made so far
+    Timestamp of first and last query made
+
+
+Note that if the program is run multiple times, it should continue where it left off. That is, the existing statistics should continue to be updated, rather than being reset.

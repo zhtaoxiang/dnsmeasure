@@ -12,7 +12,7 @@ clean:
 	rm -f *.o dnsmeasure *.cpp~ *.h~ makefile~ README~
 
 dist:
-	tar -cvzf dnsmeasure.tar.gz *.h *.cpp
+	tar -cvzf dnsmeasure.tar.gz *.h *.cpp makefile README
 
 clobber: clean
 	rm -f *.tar.gz

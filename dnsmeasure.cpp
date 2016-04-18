@@ -15,7 +15,8 @@ usage(char* program) {
     "    -s: specify the database server, the default setting is \"localhost\"" << std::endl <<
     "    -u: specify the database username, the default setting is empty string" << std::endl <<
     "    -p: specify the database password, the default setting is empty string" << std::endl <<
-    "    -f: specify the frequency of queries, the default setting is 10 seconds. Its unit is second." << std::endl;
+    "    -f: specify the frequency of queries, the default setting is 10 seconds. Its unit is second." << std::endl <<
+    "    -l: list the dns measurement result" << std::endl;
   return;
 }
 
@@ -23,9 +24,9 @@ int main(int argc, char* argv[])
 {
   int opt = -1, option_index = 0;
   int frequency = 10;
-  bool resetdatabase = false;
+  bool resetdatabase = false, listresult = false;
   std::string server = "localhost", user = "", password = "";
-  char optstring[] = "s:u:p:f:rh";
+  char optstring[] = "s:u:p:f:rhl";
   static struct option long_options[] = 
   {
     {"server", required_argument, NULL, 's'},
@@ -34,6 +35,7 @@ int main(int argc, char* argv[])
     {"frequency", no_argument, NULL, 'f'},
     {"reset_database", no_argument, NULL, 'r'},
     {"help", no_argument, NULL, 'h'},
+    {"list_stat", no_argument, NULL, 'l'},
     {0, 0, 0, 0}
   };
   while((opt = getopt_long(argc, argv, optstring, long_options, &option_index)) != -1) {
@@ -56,6 +58,9 @@ int main(int argc, char* argv[])
       case 'h':
         usage(argv[0]);
         exit(0);
+      case 'l':
+        listresult = true;
+        break;
       default:
         usage(argv[0]);
         exit(0);
@@ -64,6 +69,10 @@ int main(int argc, char* argv[])
   }
   Database db(server, user, password);
   DnsService ds;
+  if(listresult) {
+    db.printMeasurement();
+    exit(0);
+  }
   if(resetdatabase) {
     db.resetDatabase();
     exit(0);
